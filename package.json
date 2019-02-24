@@ -1,0 +1,22 @@
+{
+  "name": "winemag",
+  "version": "0.0.1",
+  "description": "Simple visualization of some data about wines.",
+  "main": "index.js",
+  "author": "mattmusc",
+  "license": "MIT",
+  "private": true,
+  "dependencies": {
+    "express": "^4.16.4"
+  },
+  "devDependencies": {
+    "gulp": "^4.0.0",
+    "gulp-cli": "^2.0.1",
+    "gulp-copy": "^4.0.1"
+  },
+  "scripts": {
+    "heroku-postbuild": "gulp",
+    "dist": "gulp",
+    "serve": "node server.js"
+  }
+}

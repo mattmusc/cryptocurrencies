@@ -16,7 +16,7 @@
 
         vis.margin = {
             left: 80,
-            right: 100,
+            right: 150,
             top: 50,
             bottom: 100
         };
@@ -59,13 +59,18 @@
             .attr("transform", "translate(0," + vis.height + ")");
         vis.yAxis = vis.g.append("g")
             .attr("class", "y axis");
-        
+
         vis.g.append("text")
             .attr("id", "line-chart-label")
             .attr("y", -10)
             .attr("x", 0)
             .attr("font-size", "16px")
             .attr("fill", "#777");
+
+        vis.svg.append("g")
+            .attr("class", "legend")
+            .attr("y", 10)
+            .attr("transform", "translate(" + (800 - vis.margin.right + 20) + "," + vis.margin.top + ")");
     };
 
     LineChart.prototype.updateVis = function (chartData) {
@@ -148,16 +153,6 @@
             .attr("class", "focus")
             .style("display", "none");
 
-        // focus.append("line")
-        //     .attr("class", "x-hover-line hover-line")
-        //     .attr("y1", 0)
-        //     .attr("y2", vis.height);
-
-        // focus.append("line")
-        //     .attr("class", "y-hover-line hover-line")
-        //     .attr("x1", 0)
-        //     .attr("x2", vis.width);
-
         focus.append("text")
             .attr("x", 15)
             .attr("dy", ".31em");
@@ -177,10 +172,12 @@
             .attr("height", vis.height)
             .on("mouseover", function () {
                 focus.style("display", null);
+                d3.selectAll('.legendRow').style("display", null);
             })
             .on("mouseout", function () {
                 focus.style("display", "none");
                 d3.select("#line-chart-label").text("");
+                d3.selectAll('.legendRow').style("display", "none");
             })
             .on("mousemove", mousemove);
 
@@ -197,17 +194,8 @@
 
                 focus.selectAll("circle.circle-" + coin)
                     .attr("transform", "translate(" + vis.x(d.date) + "," + vis.y(d[chartData.yVariable]) + ")")
-                
-                d3.select("#line-chart-label").text(
-                    d3.format("$,")(d[chartData.yVariable].toFixed(2))
-                    + " - " + _pageController.formatTime(d.date)
-                );
 
-                // focus.select("text").text(function () {
-                //     return d3.format("$,")(d[chartData.yVariable].toFixed(2));
-                // });
-                // focus.select(".x-hover-line").attr("y2", vis.height - vis.y(d[chartData.yVariable]));
-                // focus.select(".y-hover-line").attr("x2", -vis.x(d.date));
+                d3.select('.legendLabel-' + coin).text(d3.format("$,")(d[chartData.yVariable].toFixed(2)));
             });
         }
 
@@ -216,5 +204,42 @@
             ((chartData.yVariable == "market_cap") ? "Market Capitalization (USD)" :
                 "24 Hour Trading Volume (USD)")
         vis.yLabel.text(newLabel);
+
+        // Update legend
+        var legendRows = d3.select('g.legend').selectAll('g.legendRow').data(chartData.coins);
+
+        legendRows.exit().remove();
+
+        var rows = legendRows.enter().append('g')
+            .attr("class", 'legendRow')
+            .style("display", "none")
+            .attr("transform", (d, i) => {
+                return "translate(0, " + (i * 30) + ")"
+            });
+
+        var legendRectangles = rows.selectAll("rect.legendRect").data(chartData.coins);
+
+        legendRectangles.exit().remove()
+
+        legendRectangles.enter().append("rect")
+            .attr("class", "legendRect")
+            .merge(legendRectangles)
+            .attr("width", 12)
+            .attr("height", 12)
+            .attr("fill", d => {
+                return vis.color(d);
+            });
+
+        var legendLabels = rows.selectAll("rect.legendLabel").data(chartData.coins);
+
+        legendLabels.exit().remove();
+
+        legendLabels.enter().append("text")
+            .attr("class", coin => "legendLabel legendLabel-" + coin)
+            .merge(legendLabels)
+            .attr("x", 15)
+            .attr("y", 10)
+            .attr("text-anchor", "start")
+            .text("")
     };
 }(window));

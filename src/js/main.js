@@ -24,8 +24,10 @@
         this.lineChartSelector = '#line-area';
         this.donut1Selector = '#donut-area1';
         this.donut2Selector = '#donut-area2';
+        this.timelineChartSelector = '#timeline-area';
 
         this.lineChart = undefined;
+        this.timelineChart = undefined;
         this.donutChart1 = undefined;
         this.donutChart2 = undefined;
 
@@ -103,6 +105,7 @@
             },
             color: ctr.color
         });
+        this.timelineChart = new Timeline(this.timelineChartSelector, onBrushed.bind(this), onBrushEnd.bind(this));
     };
 
     Controller.prototype.attachListeners = function () {
@@ -117,11 +120,15 @@
     }
 
     Controller.prototype.updateCharts = function () {
-        var data = this.createChartData();
+        var data_ = this.createChartData();
 
-        this.lineChart.updateVis(data);
-        this.donutChart1.updateVis(data);
-        this.donutChart2.updateVis(data);
+        this.lineChart.updateVis(data_);
+        this.donutChart1.updateVis(data_);
+        this.donutChart2.updateVis(data_);
+        this.timelineChart.updateVis({
+            ...data_,
+            dates: [this.parseTime("12/5/2013").getTime(), this.parseTime("31/10/2017").getTime()]
+        });
     }
 
     Controller.prototype.createChartData = function () {
@@ -152,6 +159,33 @@
     function onDonutArcClicked(arc, i, paths, ctr) {
         ctr.$coinSelect.selectpicker("val", arc.data.coin);
         ctr.updateCharts();
+    }
+
+    function onBrushed() {
+        var selection = d3.event.selection || this.timelineChart.x.range();
+        var newValues = selection.map(this.timelineChart.x.invert)
+
+        this.$dateSlider
+            .slider('values', 0, newValues[0])
+            .slider('values', 1, newValues[1]);
+        this.$date1Label.text(this.formatTime(newValues[0]));
+        this.$date2Label.text(this.formatTime(newValues[1]));
+
+        this.updateCharts();
+    }
+
+    function onBrushEnd() {
+        if (d3.event.selection) return;
+
+        var defaultValues = [this.parseTime("12/5/2013").getTime(), this.parseTime("31/10/2017").getTime()];
+
+        this.$dateSlider
+            .slider('values', 0, defaultValues[0])
+            .slider('values', 1, defaultValues[1]);
+        this.$date1Label.text(this.formatTime(defaultValues[0]));
+        this.$date2Label.text(this.formatTime(defaultValues[1]));
+
+        this.updateCharts();
     }
 
     var controller = window._pageController = new Controller();

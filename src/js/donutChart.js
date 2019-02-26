@@ -26,16 +26,19 @@
         vis.height = 250 - vis.margin.top - vis.margin.bottom;
         vis.radius = Math.min(vis.width, vis.height) / 2;
 
+        vis.total = 0;
         vis.pie = d3.pie()
             .padAngle(0.06)
             .value(function (d) {
+                console.log(d.coin, vis.variable, d.data[vis.variable]);
+                vis.total += d.data[vis.variable];
                 return d.data[vis.variable];
             })
             .sort(null);
 
         vis.arc = d3.arc()
             .innerRadius(vis.radius - 60)
-            .outerRadius(vis.radius - 20);
+            .outerRadius(vis.radius - 30);
 
         vis.svg = d3.select(vis.parentElement)
             .append("svg")
